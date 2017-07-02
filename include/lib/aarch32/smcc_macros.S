@@ -196,4 +196,58 @@
 	eret
 	.endm
 
+/*
+ * Macro to save the minimal General purpose registers to the SMC context
+ * on entry due a SMC call. On return, r0 contains the pointer to the
+ * `smc_context_t`. Saved registers are r0..r13 and the Monitor mode banked
+ * registers r14 (lr) and spsr.
+ */
+	.macro smcc_save_gp_min_regs
+
+	/* Save r0 - r12 in the SMC context */
+	stm	sp, {r0-r12}
+	mov	r0, sp
+	add	r0, r0, #SMC_CTX_SP_USR
+
+	mrs	r2, spsr
+	str	r2, [sp, #SMC_CTX_SPSR_MON]
+
+	/* lr_mon is already saved by caller */
+	ldcopr	r2, SCR
+	str	r2, [sp, #SMC_CTX_SCR]
+	.endm
+
+/*
+ * Macro to restore the General purpose registers prior to exit from
+ * the SMC call. r0 must point to the `smc_context_t` to restore from.
+ */
+	.macro monitor_service_exit
+	/*
+	 * Save the current sp and restore the smc context
+	 * pointer to sp which will be used for handling the
+	 * next SMC.
+	 */
+	str	sp, [r0, #SMC_CTX_SP_MON]
+	mov	sp, r0
+
+	/*
+	 * Restore SCR first so that we access the right banked register
+	 * when the other mode registers are restored.
+	 */
+	ldr	r1, [r0, #SMC_CTX_SCR]
+	stcopr	r1, SCR
+	isb
+
+	/* Restore the banked register SPSR */
+	ldr	r1, [r0, #SMC_CTX_SPSR_MON]
+	msr	spsr_fsxc, r1
+
+	/* Restore the LR */
+	ldr	lr, [r0, #SMC_CTX_LR_MON]
+
+	/* Restore the rest of the general purpose registers */
+	ldm	r0, {r0-r12}
+	eret
+	.endm
+
 #endif /* __SMCC_MACROS_S__ */

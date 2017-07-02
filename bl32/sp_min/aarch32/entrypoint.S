@@ -155,7 +155,7 @@ func handle_smc
 	/* On SMC entry, `sp` points to `smc_ctx_t`. Save `lr`. */
 	str	lr, [sp, #SMC_CTX_LR_MON]
 
-	smcc_save_gp_mode_regs
+	smcc_save_gp_min_regs
 
 	clrex_on_monitor_entry
 
@@ -191,14 +191,14 @@ func handle_smc
 	mov	r0, #SMC_UNK
 	str	r0, [r2, #SMC_CTX_GPREG_R0]
 	mov	r0, r2
-	b	sp_min_exit
+	b	sp_min_service_exit
 1:
 	/* SMC32 is detected */
 	mov	r1, #0				/* cookie */
 	bl	handle_runtime_svc
 
 	/* `r0` points to `smc_ctx_t` */
-	b	sp_min_exit
+	b	sp_min_service_exit
 endfunc handle_smc
 
 /*
@@ -213,7 +213,7 @@ func handle_fiq
 	/* On SMC entry, `sp` points to `smc_ctx_t`. Save `lr`. */
 	str	lr, [sp, #SMC_CTX_LR_MON]
 
-	smcc_save_gp_mode_regs
+	smcc_save_gp_min_regs
 
 	clrex_on_monitor_entry
 
@@ -246,7 +246,7 @@ func handle_fiq
 	bl	sp_min_fiq
 	pop	{r0, r3}
 
-	b	sp_min_exit
+	b	sp_min_service_exit
 #endif
 endfunc handle_fiq
 
@@ -325,3 +325,13 @@ endfunc sp_min_warm_entrypoint
 func sp_min_exit
 	monitor_exit
 endfunc sp_min_exit
+
+/*
+ * The function to restore the registers from SMC/FIQ context and return
+ * to the mode restored to SPSR.
+ *
+ * Arguments : r0 must point to the SMC context to restore from.
+ */
+func sp_min_service_exit
+	monitor_service_exit
+endfunc sp_min_service_exit
