@@ -140,6 +140,11 @@ void sp_min_early_platform_setup(void *from_bl2,
 	bl33_image_ep_info.spsr &= SPSR_FIQ_BIT;
 }
 
+void sp_min_plat_fiq_handler(uint32_t id)
+{
+	VERBOSE("[sp_min] interrupt #%d\n", id);
+}
+
 /*******************************************************************************
  * Perform platform specific setup for SP_MIN
  ******************************************************************************/
