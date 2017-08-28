@@ -224,13 +224,33 @@ static uint32_t qemu_get_spsr_for_bl33_entry(void)
 }
 
 #if LOAD_IMAGE_V2
+
+static void set_mem_params_info(entry_point_info_t *ep_info,
+				image_info_t *unpaged, image_info_t *paged)
+{
+	uintptr_t bl32_ep = 0;
+
+	/* Use the default dram setup if no valid ep found */
+	if (get_optee_header_ep(ep_info, &bl32_ep) &&
+	    bl32_ep >= BL32_SRAM_BASE &&
+	    bl32_ep < BL32_SRAM_LIMIT) {
+		unpaged->image_base = BL32_SRAM_BASE;
+		unpaged->image_max_size = BL32_SRAM_LIMIT - BL32_SRAM_BASE;
+	} else {
+		unpaged->image_base = BL32_DRAM_BASE;
+		unpaged->image_max_size = BL32_DRAM_LIMIT - BL32_DRAM_BASE;
+	}
+	paged->image_base = QEMU_OPTEE_PAGEABLE_LOAD_BASE;
+	paged->image_max_size = QEMU_OPTEE_PAGEABLE_LOAD_SIZE;
+}
+
 static int qemu_bl2_handle_post_image_load(unsigned int image_id)
 {
 	int err = 0;
 	bl_mem_params_node_t *bl_mem_params = get_bl_mem_params_node(image_id);
 #ifdef SPD_opteed
-	bl_mem_params_node_t *pager_mem_params = NULL;
-	bl_mem_params_node_t *paged_mem_params = NULL;
+	bl_mem_params_node_t *pager_mem_params;
+	bl_mem_params_node_t *paged_mem_params;
 #endif
 
 	assert(bl_mem_params);
@@ -245,11 +265,16 @@ static int qemu_bl2_handle_post_image_load(unsigned int image_id)
 		paged_mem_params = get_bl_mem_params_node(BL32_EXTRA2_IMAGE_ID);
 		assert(paged_mem_params);
 
+		set_mem_params_info(&bl_mem_params->ep_info,
+				    &pager_mem_params->image_info,
+				    &paged_mem_params->image_info);
+
 		err = parse_optee_header(&bl_mem_params->ep_info,
-					 &pager_mem_params->image_info,
-					 &paged_mem_params->image_info);
-		if (err != 0) {
-			WARN("OPTEE header parse error.\n");
+				 &pager_mem_params->image_info,
+				 &paged_mem_params->image_info);
+		if (err) {
+			ERROR("OPTEE header parse error.\n");
+			panic();
 		}
 
 		/*
