@@ -30,7 +30,12 @@
 					SHARED_RAM_SIZE,		\
 					MT_DEVICE  | MT_RW | MT_SECURE)
 
-#define MAP_BL32_MEM	MAP_REGION_FLAT(BL32_MEM_BASE, BL32_MEM_SIZE,	\
+#define MAP_BL32_SRAM	MAP_REGION_FLAT(BL32_SRAM_BASE,			\
+					BL32_SRAM_LIMIT - BL32_SRAM_BASE, \
+					MT_MEMORY | MT_RW | MT_SECURE)
+
+#define MAP_BL32_DRAM	MAP_REGION_FLAT(BL32_DRAM_BASE,			\
+					BL32_DRAM_LIMIT - BL32_DRAM_BASE, \
 					MT_MEMORY | MT_RW | MT_SECURE)
 
 #define MAP_NS_DRAM0	MAP_REGION_FLAT(NS_DRAM0_BASE, NS_DRAM0_SIZE,	\
@@ -70,7 +75,8 @@ static const mmap_region_t plat_qemu_mmap[] = {
 	MAP_DEVICE2,
 #endif
 	MAP_NS_DRAM0,
-	MAP_BL32_MEM,
+	MAP_BL32_SRAM,
+	MAP_BL32_DRAM,
 	{0}
 };
 #endif
@@ -81,7 +87,8 @@ static const mmap_region_t plat_qemu_mmap[] = {
 #ifdef MAP_DEVICE1
 	MAP_DEVICE1,
 #endif
-	MAP_BL32_MEM,
+	MAP_BL32_SRAM,
+	MAP_BL32_DRAM,
 	{0}
 };
 #endif
