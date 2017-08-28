@@ -11,6 +11,10 @@
 #include <errno.h>
 #include <optee_utils.h>
 
+#ifndef MODE_RW_64
+#define MODE_RW_64	U(0)
+#endif
+
 /*
  * load_addr_hi and load_addr_lo: image load address.
  * image_id: 0 - pager, 1 - paged
