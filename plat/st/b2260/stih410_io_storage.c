@@ -26,10 +26,23 @@ static io_block_spec_t bl2_block_spec = {
 	.length = STIH410_BL2_SRAM_SIZE,
 };
 
+#if !defined(AARCH32_SP_OPTEE)
 static io_block_spec_t bl32_block_spec = {
 	.offset = STIH410_BL32_SRAM_BASE,
 	.length = STIH410_BL32_SRAM_SIZE,
 };
+#endif
+
+#if defined(AARCH32_SP_OPTEE)
+/* bl32 header get preloaded in optee sram at offset 128kB */
+static io_block_spec_t bl32_block_spec = {
+	.offset = PLAT_TZRAM2_BASE + 0x00020000,
+	.length = 0x1000,
+};
+/* io_dummy landing address are set at runtime */
+static io_block_spec_t bl32_extra1_block_spec;
+static io_block_spec_t bl32_extra2_block_spec;
+#endif /* AARCH32_SP_OPTEE */
 
 static io_block_spec_t bl33_block_spec = {
 	.offset = STIH410_BL33_ERAM_BASE,
@@ -56,6 +69,18 @@ static const struct plat_io_policy policies[] = {
 		(uintptr_t)&bl32_block_spec,
 		open_dummy
 	},
+#if defined(AARCH32_SP_OPTEE)
+	[BL32_EXTRA1_IMAGE_ID] = {
+		&dummy_dev_handle,
+		(uintptr_t)&bl32_extra1_block_spec,
+		open_dummy
+	},
+	[BL32_EXTRA2_IMAGE_ID] = {
+		&dummy_dev_handle,
+		(uintptr_t)&bl32_extra2_block_spec,
+		open_dummy
+	},
+#endif
 	[BL33_IMAGE_ID] = {
 		&dummy_dev_handle,
 		(uintptr_t)&bl33_block_spec,

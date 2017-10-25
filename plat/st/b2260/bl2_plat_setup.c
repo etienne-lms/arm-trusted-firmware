@@ -59,7 +59,11 @@ void bl2_early_platform_setup(meminfo_t *mem_layout)
  ******************************************************************************/
 void bl2_platform_setup(void)
 {
+#ifdef AARCH32_SP_OPTEE
+	INFO("BL2 runs OP-TEE setup\n");
+#else
 	INFO("BL2 runs SP_MIN setup\n");
+#endif
 	stih410_io_setup();
 }
 
@@ -103,13 +107,44 @@ void bl2_plat_arch_setup(void)
 			BL1_RW_LIMIT - BL1_RW_BASE,
 			MT_MEMORY | MT_RO | MT_SECURE);
 
+#ifdef AARCH32_SP_OPTEE
+	/* OP-TEE image needs post load processing: keep RAM read/write */
+	mmap_add_region(STIH410_BL32_SRAM_BASE, STIH410_BL32_SRAM_BASE,
+			STIH410_BL32_SRAM_SIZE,
+			MT_MEMORY | MT_RW | MT_SECURE);
+	mmap_add_region(STIH410_BL32_ERAM_BASE, STIH410_BL32_ERAM_BASE,
+			STIH410_BL32_ERAM_SIZE,
+			MT_MEMORY | MT_RW | MT_SECURE);
+#else
 	/* prevent corruption of preloaded BL32 */
 	mmap_add_region(STIH410_BL32_SRAM_BASE, STIH410_BL32_SRAM_BASE,
 			STIH410_BL32_SRAM_SIZE,
 			MT_MEMORY | MT_RO | MT_SECURE);
-
+#endif
 	configure_mmu();
 }
+
+#if defined(AARCH32_SP_OPTEE)
+static void set_mem_params_info(entry_point_info_t *ep_info,
+				image_info_t *unpaged, image_info_t *paged)
+{
+	uintptr_t bl32_ep = 0;
+
+	/* Use the default dram setup if no valid ep found */
+	if (get_optee_header_ep(ep_info, &bl32_ep) &&
+	    bl32_ep >= STIH410_BL32_SRAM_BASE &&
+	    bl32_ep < (STIH410_BL32_SRAM_BASE + STIH410_BL32_SRAM_SIZE)) {
+		// TODO: restrict outside bl1/bl2 area
+		unpaged->image_base = STIH410_BL32_SRAM_BASE;
+		unpaged->image_max_size = STIH410_BL32_SRAM_SIZE;
+	} else {
+		unpaged->image_base = STIH410_BL32_ERAM_BASE;
+		unpaged->image_max_size = STIH410_BL32_ERAM_SIZE;
+	}
+	paged->image_base = STIH410_BL32_ERAM_BASE;
+	paged->image_max_size = STIH410_BL32_ERAM_SIZE;
+}
+#endif
 
 /*******************************************************************************
  * This function can be used by the platforms to update/use image
@@ -119,18 +154,67 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 {
 	int err = 0;
 	bl_mem_params_node_t *bl_mem_params = get_bl_mem_params_node(image_id);
+#if defined(AARCH32_SP_OPTEE)
+	bl_mem_params_node_t *bl32_mem_params;
+	bl_mem_params_node_t *pager_mem_params;
+	bl_mem_params_node_t *paged_mem_params;
+#endif
 
 	assert(bl_mem_params);
 
 	switch (image_id) {
 	case BL32_IMAGE_ID:
+#if defined(AARCH32_SP_OPTEE)
+		pager_mem_params = get_bl_mem_params_node(BL32_EXTRA1_IMAGE_ID);
+		assert(pager_mem_params);
+
+		paged_mem_params = get_bl_mem_params_node(BL32_EXTRA2_IMAGE_ID);
+		assert(paged_mem_params);
+
+		bl_mem_params->ep_info.pc =
+					bl_mem_params->image_info.image_base;
+
+		set_mem_params_info(&bl_mem_params->ep_info,
+				    &pager_mem_params->image_info,
+				    &paged_mem_params->image_info);
+
+		err = parse_optee_header(&bl_mem_params->ep_info,
+					 &pager_mem_params->image_info,
+					 &paged_mem_params->image_info);
+		if (err) {
+			ERROR("OPTEE header parse error.\n");
+			panic();
+		}
+
+		/* Set optee boot info from parsed header data */
+		bl_mem_params->ep_info.pc =
+				pager_mem_params->image_info.image_base;
+		bl_mem_params->ep_info.args.arg0 =
+				paged_mem_params->image_info.image_base;
+		bl_mem_params->ep_info.args.arg1 = 0; /* Unused */
+		bl_mem_params->ep_info.args.arg2 = 0; /* No DT supported */
+
+		/* BL2 use io_dummy: insure locations are the expected ones */
+		stih410_postload_set_image_location(BL32_EXTRA1_IMAGE_ID,
+				pager_mem_params->image_info.image_base,
+				pager_mem_params->image_info.image_max_size);
+		stih410_postload_set_image_location(BL32_EXTRA2_IMAGE_ID,
+				paged_mem_params->image_info.image_base,
+				paged_mem_params->image_info.image_max_size);
+#endif
 		break;
 
 	case BL33_IMAGE_ID:
+#ifdef AARCH32_SP_OPTEE
+		bl32_mem_params = get_bl_mem_params_node(BL32_IMAGE_ID);
+		assert(bl32_mem_params);
+		bl32_mem_params->ep_info.lr = bl_mem_params->ep_info.pc;
+#else /* AARCH32_SP_OPTEE */
 		bl_mem_params->ep_info.spsr =
 				SPSR_MODE32(MODE32_svc,
 					plat_get_ns_image_entrypoint() & 0x1,
 					SPSR_E_LITTLE, DISABLE_ALL_EXCEPTIONS);
+#endif /* AARCH32_SP_OPTEE */
 		break;
 
 #ifdef SCP_BL2_BASE

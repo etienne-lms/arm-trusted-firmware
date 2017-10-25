@@ -24,6 +24,10 @@ BL2_SOURCES		+=	drivers/io/io_dummy.c
 BL2_SOURCES		+=	${PLAT_PATH}/bl2_mem_params_desc.c
 BL2_SOURCES		+=	${PLAT_PATH}/stih410_hpen.c
 
+ifeq ($(AARCH32_SP),optee)
+BL2_SOURCES		+=	lib/optee/optee_utils.c
+endif
+
 CTX_INCLUDE_FPREGS	:=	1
 DEBUG			:=	0
 ENABLE_PLAT_COMPAT	:=	0

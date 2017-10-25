@@ -52,12 +52,51 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 					VERSION_2, image_info_t,
 					IMAGE_ATTRIB_PLAT_SETUP),
 
+#if defined(AARCH32_SP_OPTEE)
+		/* optee header is loaded is SYSRAM below BL2 */
+		.image_info.image_base = STIH410_BL32_SRAM_BASE +
+								(128 * 1024),
+		.image_info.image_max_size = STIH410_BL32_SRAM_SIZE -
+								(128 * 1024),
+#else
+		/* bl32 goes to the target location */
 		.ep_info.pc = BL32_BASE,
 		.image_info.image_base = BL32_BASE,
 		.image_info.image_max_size = BL32_LIMIT - BL32_BASE,
-
+#endif
 		.next_handoff_image_id = BL33_IMAGE_ID,
 	},
+
+#if defined(AARCH32_SP_OPTEE)
+	/* Fill BL32 external 1 image related information */
+	{
+		.image_id = BL32_EXTRA1_IMAGE_ID,
+
+		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
+				  VERSION_2, entry_point_info_t,
+				  SECURE | NON_EXECUTABLE),
+
+		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
+				  VERSION_2, image_info_t,
+				  IMAGE_ATTRIB_SKIP_LOADING),
+
+		.next_handoff_image_id = INVALID_IMAGE_ID,
+	},
+	/* Fill BL32 external 2 image related information */
+	{
+		.image_id = BL32_EXTRA2_IMAGE_ID,
+
+		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
+				  VERSION_2, entry_point_info_t,
+				  SECURE | NON_EXECUTABLE),
+
+		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
+				  VERSION_2, image_info_t,
+				  IMAGE_ATTRIB_SKIP_LOADING),
+
+		.next_handoff_image_id = INVALID_IMAGE_ID,
+	},
+#endif /* AARCH32_SP_OPTEE */
 
 	/* Fill BL33 related information */
 	{
@@ -66,7 +105,6 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
 					VERSION_2, entry_point_info_t,
 					NON_SECURE | EXECUTABLE),
-
 #ifdef PRELOADED_BL33_BASE
 		.ep_info.pc = PRELOADED_BL33_BASE,
 
