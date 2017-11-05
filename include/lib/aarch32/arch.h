@@ -314,6 +314,7 @@
 
 #define MODE_RW_SHIFT		0x4
 #define MODE_RW_MASK		0x1
+#define MODE_RW_64		0x0
 #define MODE_RW_32		0x1
 
 #define MODE32_SHIFT		0
