@@ -20,7 +20,8 @@
  ******************************************************************************/
 #define ENTRY_POINT_INFO_PC_OFFSET	U(0x08)
 #ifdef AARCH32
-#define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x10)
+#define ENTRY_POINT_INFO_LR_OFFSET	U(0x10)
+#define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x14)
 #else
 #define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x18)
 #endif
@@ -93,6 +94,7 @@ typedef struct entry_point_info {
 	uintptr_t pc;
 	uint32_t spsr;
 #ifdef AARCH32
+	uintptr_t lr;
 	aapcs32_params_t args;
 #else
 	aapcs64_params_t args;
@@ -107,6 +109,12 @@ typedef struct entry_point_info {
 CASSERT(ENTRY_POINT_INFO_PC_OFFSET ==
 		__builtin_offsetof(entry_point_info_t, pc), \
 		assert_BL31_pc_offset_mismatch);
+
+#ifdef ENTRY_POINT_INFO_LR_OFFSET
+CASSERT(ENTRY_POINT_INFO_LR_OFFSET ==
+		__builtin_offsetof(entry_point_info_t, lr),
+		assert_entrypoint_lr_offset_error);
+#endif
 
 CASSERT(ENTRY_POINT_INFO_ARGS_OFFSET == \
 		__builtin_offsetof(entry_point_info_t, args), \
