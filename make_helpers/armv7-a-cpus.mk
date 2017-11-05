@@ -35,14 +35,19 @@ endif
 #
 # ARCH_SUPPORTS_VIRTUALIZATION = 0/1
 # Defines if ARMv7 core supports the Virtualization extension.
+#
+# ARCH_SUPPORTS_GENERIC_TIMER = 0/1
+# Defines if ARMv7 core supports the Generic Timer extension.
 
 define pre-a15-extensions
 ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING	?= 	0
 ARCH_SUPPORTS_VIRTUALIZATION		?= 	0
+ARCH_SUPPORTS_GENERIC_TIMER 		?= 	0
 endef
 define post-a15-extensions
 ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING	?= 	1
 ARCH_SUPPORTS_VIRTUALIZATION		?= 	1
+ARCH_SUPPORTS_GENERIC_TIMER 		?= 	1
 endef
 
 ifeq ($(ARM_CORTEX_A5),yes)
@@ -74,3 +79,6 @@ $(eval $(call add_define,ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING))
 
 $(eval $(call assert_boolean,ARCH_SUPPORTS_VIRTUALIZATION))
 $(eval $(call add_define,ARCH_SUPPORTS_VIRTUALIZATION))
+
+$(eval $(call assert_boolean,ARCH_SUPPORTS_GENERIC_TIMER))
+$(eval $(call add_define,ARCH_SUPPORTS_GENERIC_TIMER))
