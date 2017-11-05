@@ -87,8 +87,10 @@ entry_point_info_t *bl2_load_images(void)
 	assert(bl2_to_next_bl_params->h.version >= VERSION_2);
 	assert(bl2_to_next_bl_params->head->ep_info);
 
+#ifndef AARCH32_SP_OPTEE
 	/* Populate arg0 for the next BL image */
 	bl2_to_next_bl_params->head->ep_info->args.arg0 = (u_register_t)bl2_to_next_bl_params;
+#endif
 
 	/* Flush the parameters to be passed to next image */
 	plat_flush_next_bl_params();
