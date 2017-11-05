@@ -13,6 +13,10 @@
 #include <xlat_tables.h>
 #include "../xlat_tables_private.h"
 
+#if ARM_ARCH_MAJOR == 7
+CASSERT(ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING, assert_large_page_addressing);
+#endif
+
 #define XLAT_TABLE_LEVEL_BASE	\
        GET_XLAT_TABLE_LEVEL_BASE(PLAT_VIRT_ADDR_SPACE_SIZE)
 

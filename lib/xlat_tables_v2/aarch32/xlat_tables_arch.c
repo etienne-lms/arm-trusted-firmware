@@ -14,6 +14,10 @@
 #include <xlat_tables_v2.h>
 #include "../xlat_tables_private.h"
 
+#if ARM_ARCH_MAJOR == 7
+CASSERT(ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING, assert_large_page_addressing);
+#endif
+
 #if ENABLE_ASSERTIONS
 unsigned long long xlat_arch_get_max_supported_pa(void)
 {

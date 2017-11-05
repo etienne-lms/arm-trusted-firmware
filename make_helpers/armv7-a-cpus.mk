@@ -27,3 +27,42 @@ march32-neon-$(ARM_WITH_NEON)	:= -mfpu=neon
 march32-set-yes			?= -march=armv7-a
 march32-directive		:= ${march32-set-yes} ${march32-neon-yes}
 endif
+
+# Platform may override these extension support directives:
+#
+# ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING = 0/1
+# Defines if core supports the Large Page Addressing extension.
+
+define pre-a15-extensions
+ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING	?= 	0
+endef
+define post-a15-extensions
+ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING	?= 	1
+endef
+
+ifeq ($(ARM_CORTEX_A5),yes)
+$(call $(call pre-a15-extensions))
+endif
+
+ifeq ($(ARM_CORTEX_A7),yes)
+$(eval $(call post-a15-extensions))
+endif
+
+ifeq ($(ARM_CORTEX_A9),yes)
+$(eval $(call pre-a15-extensions))
+endif
+
+ifeq ($(ARM_CORTEX_A12),yes)
+$(eval $(call post-a15-extensions))
+endif
+
+ifeq ($(ARM_CORTEX_A15),yes)
+$(eval $(call post-a15-extensions))
+endif
+
+ifeq ($(ARM_CORTEX_A17),yes)
+$(eval $(call post-a15-extensions))
+endif
+
+$(eval $(call assert_boolean,ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING))
+$(eval $(call add_define,ARCH_SUPPORTS_LARGE_PAGE_ADDRESSING))
