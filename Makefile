@@ -126,20 +126,28 @@ OD			:=	${CROSS_COMPILE}objdump
 NM			:=	${CROSS_COMPILE}nm
 PP			:=	${CROSS_COMPILE}gcc -E
 
+ifeq (${ARM_ARCH_MAJOR},7)
+target32-directive	= 	-target arm-none-eabi
+# Will set march32-directive from platform configuration
+else
+target32-directive	= 	-target armv8a-none-eabi
+march32-directive	= 	-march armv8-a
+endif
+
 ifeq ($(notdir $(CC)),armclang)
-TF_CFLAGS_aarch32	=	-target arm-arm-none-eabi -march=armv8-a
+TF_CFLAGS_aarch32	=	-target arm-arm-none-eabi $(march32-directive)
 TF_CFLAGS_aarch64	=	-target aarch64-arm-none-eabi -march=armv8-a
 else ifneq ($(findstring clang,$(notdir $(CC))),)
-TF_CFLAGS_aarch32	=	-target armv8a-none-eabi
+TF_CFLAGS_aarch32	=	$(target32-directive)
 TF_CFLAGS_aarch64	=	-target aarch64-elf
 else
-TF_CFLAGS_aarch32	=	-march=armv8-a
+TF_CFLAGS_aarch32	=	$(march32-directive)
 TF_CFLAGS_aarch64	=	-march=armv8-a
 endif
 
 TF_CFLAGS_aarch64	+=	-mgeneral-regs-only -mstrict-align
 
-ASFLAGS_aarch32		=	-march=armv8-a
+ASFLAGS_aarch32		=	$(march32-directive)
 ASFLAGS_aarch64		=	-march=armv8-a
 
 CPPFLAGS		=	${DEFINES} ${INCLUDES} -nostdinc		\
@@ -260,6 +268,10 @@ include lib/stack_protector/stack_protector.mk
 
 include ${PLAT_MAKEFILE_FULL}
 
+ifeq (${ARM_ARCH_MAJOR},7)
+include make_helpers/armv7-a-cpus.mk
+endif
+
 # Platform compatibility is not supported in AArch32
 ifneq (${ARCH},aarch32)
 # If the platform has not defined ENABLE_PLAT_COMPAT, then enable it by default
@@ -338,6 +350,12 @@ endif
 # use USE_COHERENT_MEM. Require that USE_COHERENT_MEM must be set to 0 too.
 ifeq ($(HW_ASSISTED_COHERENCY)-$(USE_COHERENT_MEM),1-1)
 $(error USE_COHERENT_MEM cannot be enabled with HW_ASSISTED_COHERENCY)
+endif
+
+ifeq (${ARM_ARCH_MAJOR},7)
+ifneq (${ARCH},aarch32)
+$(error ARM_ARCH_MAJOR=7 mandates ARCH=aarch32)
+endif
 endif
 
 ################################################################################
