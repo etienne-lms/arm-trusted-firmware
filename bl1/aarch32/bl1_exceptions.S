@@ -73,6 +73,12 @@ debug_loop:
 	ldr	r1, [r8, #(ENTRY_POINT_INFO_PC_OFFSET + 4)]
 	msr	spsr, r1
 
+#ifdef ENTRY_POINT_INFO_LR_SVC_OFFSET
+	cps	#MODE32_svc
+	ldr	lr, [r8, #ENTRY_POINT_INFO_LR_SVC_OFFSET]
+	cps	#MODE32_mon
+#endif
+
 	add	r8, r8, #ENTRY_POINT_INFO_ARGS_OFFSET
 	ldm	r8, {r0, r1, r2, r3}
 	eret
