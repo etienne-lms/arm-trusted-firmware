@@ -24,6 +24,11 @@ PLAT_PARTITION_MAX_ENTRIES	:=	$(shell echo $$(($(STM32_TF_A_COPIES) + 1)))
 endif
 $(eval $(call add_define,PLAT_PARTITION_MAX_ENTRIES))
 
+# Configuration STM32MP_SHARED_RESOURCES embeds platform shared resource driver
+STM32MP_SHARED_RESOURCES := 1
+$(eval $(call assert_boolean,STM32MP_SHARED_RESOURCES))
+$(eval $(call add_define,STM32MP_SHARED_RESOURCES))
+
 PLAT_INCLUDES		:=	-Iplat/st/common/include/
 PLAT_INCLUDES		+=	-Iplat/st/stm32mp1/include/
 
@@ -92,6 +97,10 @@ BL2_SOURCES		+=	common/desc_image_load.c				\
 
 ifeq ($(AARCH32_SP),optee)
 BL2_SOURCES		+=	lib/optee/optee_utils.c
+endif
+
+ifeq ($(STM32MP_SHARED_RESOURCES),1)
+PLAT_BL_COMMON_SOURCES	+=	plat/st/stm32mp1/stm32mp1_shared_resources.c
 endif
 
 # Macros and rules to build TF binary
