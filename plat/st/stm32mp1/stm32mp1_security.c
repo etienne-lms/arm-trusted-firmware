@@ -10,6 +10,7 @@
 
 #include <common/debug.h>
 #include <drivers/arm/tzc400.h>
+#include <drivers/st/etzpc.h>
 #include <drivers/st/stm32mp1_clk.h>
 #include <dt-bindings/clock/stm32mp1-clks.h>
 #include <lib/mmio.h>
@@ -128,7 +129,26 @@ static void early_init_tzc400(void)
 void stm32mp1_arch_security_setup(void)
 {
 	early_init_tzc400();
+	etzpc_init();
+
+	/*
+	 * Confiure access rights on internal RAM. Most ETZPC configuration
+	 * is laoded later, once devices have probed and register to either
+	 * secure or non-secure world.
+	 */
+	etzpc_configure_tzma(0, ETZPC_TZMA_ALL_SECURE);
+	etzpc_configure_tzma(1, STM32MP_SYSRAM_S_SIZE >> 12);
 }
+
+CASSERT((STM32MP_SEC_SYSRAM_SIZE >= STM32MP_SYSRAM_BASE) &&
+	((STM32MP_SEC_SYSRAM_BASE + STM32MP_SEC_SYSRAM_SIZE) <=
+	 (STM32MP_SYSRAM_BASE + STM32MP_SYSRAM_SIZE)),
+	assert_secure_sysram_fits_into_sysram);
+
+CASSERT((STM32MP_NS_SYSRAM_BASE >= STM32MP_SEC_SYSRAM_BASE) &&
+	((STM32MP_NS_SYSRAM_BASE + STM32MP_NS_SYSRAM_SIZE) <=
+	 (STM32MP_SYSRAM_BASE + STM32MP_SYSRAM_SIZE)),
+	assert_non_secure_sysram_fits_into_sysram);
 
 /*******************************************************************************
  * Initialize the secure environment. At this moment only the TrustZone

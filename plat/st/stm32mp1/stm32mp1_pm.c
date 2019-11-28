@@ -68,9 +68,9 @@ static int stm32_pwr_domain_on(u_register_t mpidr)
 		return PSCI_E_INVALID_PARAMS;
 	}
 
-	if ((stm32_sec_entrypoint < STM32MP_SYSRAM_BASE) ||
-	    (stm32_sec_entrypoint > (STM32MP_SYSRAM_BASE +
-				     (STM32MP_SYSRAM_SIZE - 1)))) {
+	if ((stm32_sec_entrypoint < STM32MP_SEC_SYSRAM_BASE) ||
+	    (stm32_sec_entrypoint > (STM32MP_SEC_SYSRAM_BASE +
+				     (STM32MP_SEC_SYSRAM_SIZE - 1)))) {
 		return PSCI_E_INVALID_ADDRESS;
 	}
 

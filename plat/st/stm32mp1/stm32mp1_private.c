@@ -30,11 +30,19 @@
 					 BOARD_ID_REVISION_SHIFT)
 #define BOARD_ID2BOM(_id)		((_id) & BOARD_ID_BOM_MASK)
 
-#define MAP_SRAM	MAP_REGION_FLAT(STM32MP_SYSRAM_BASE, \
-					STM32MP_SYSRAM_SIZE, \
+#define MAP_SEC_SRAM	MAP_REGION_FLAT(STM32MP_SEC_SYSRAM_BASE, \
+					STM32MP_SEC_SYSRAM_SIZE, \
 					MT_MEMORY | \
 					MT_RW | \
 					MT_SECURE | \
+					MT_EXECUTE_NEVER)
+
+/* Non-secure SYSRAM is used a uncached memory for SCMI message transfer */
+#define MAP_SCMI_SRAM	MAP_REGION_FLAT(STM32MP_SYSRAM_NSEC_BASE, \
+					STM32MP_SYSRAM_NSEC_SIZE, \
+					MT_DEVICE | \
+					MT_RW | \
+					MT_NS | \
 					MT_EXECUTE_NEVER)
 
 #define MAP_DEVICE1	MAP_REGION_FLAT(STM32MP1_DEVICE1_BASE, \
@@ -53,7 +61,7 @@
 
 #if defined(IMAGE_BL2)
 static const mmap_region_t stm32mp1_mmap[] = {
-	MAP_SRAM,
+	MAP_SEC_SRAM,
 	MAP_DEVICE1,
 	MAP_DEVICE2,
 	{0}
@@ -61,7 +69,8 @@ static const mmap_region_t stm32mp1_mmap[] = {
 #endif
 #if defined(IMAGE_BL32)
 static const mmap_region_t stm32mp1_mmap[] = {
-	MAP_SRAM,
+	MAP_SEC_SRAM,
+	MAP_SCMI_SRAM,
 	MAP_DEVICE1,
 	MAP_DEVICE2,
 	{0}
