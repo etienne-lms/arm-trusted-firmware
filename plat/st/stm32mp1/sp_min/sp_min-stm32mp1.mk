@@ -20,6 +20,15 @@ BL32_SOURCES		+=	drivers/arm/gic/common/gic_common.c	\
 # Generic PSCI
 BL32_SOURCES		+=	plat/common/plat_psci_common.c
 
+# SCMI message drivers
+BL32_SOURCES		+=	drivers/scmi-msg/base.c			\
+				drivers/scmi-msg/clock.c		\
+				drivers/scmi-msg/entry.c		\
+				drivers/scmi-msg/platform_weaks.S	\
+				drivers/scmi-msg/reset_domain.c		\
+				drivers/scmi-msg/smt.c
+
 # stm32mp1 specific services
 BL32_SOURCES		+=	plat/st/stm32mp1/services/bsec_svc.c		\
-				plat/st/stm32mp1/services/stm32mp1_svc_setup.c
+				plat/st/stm32mp1/services/stm32mp1_svc_setup.c	\
+				plat/st/stm32mp1/stm32mp1_scmi.c
