@@ -77,43 +77,45 @@ entry_point_info_t *sp_min_plat_get_bl33_ep_info(void)
 	return next_image_info;
 }
 
-CASSERT((STM32MP_NS_SYSRAM_BASE & GENMASK(11, 0)) == 0,
-	assert_non_secure_sysram_base_is_4kbyte_aligned);
-
-CASSERT((STM32MP_SYSRAM_BASE + STM32MP_SYSRAM_SIZE) ==
-	(STM32MP_NS_SYSRAM_BASE + STM32MP_NS_SYSRAM_SIZE),
-	assert_non_secure_sysram_ends_at_sysram_end);
-
-CASSERT((STM32MP_SEC_SYSRAM_SIZE >= STM32MP_SYSRAM_BASE) &&
+CASSERT((STM32MP_SEC_SYSRAM_BASE >= STM32MP_SYSRAM_BASE) &&
 	((STM32MP_SEC_SYSRAM_BASE + STM32MP_SEC_SYSRAM_SIZE) <=
 	 (STM32MP_SYSRAM_BASE + STM32MP_SYSRAM_SIZE)),
 	assert_secure_sysram_fits_into_sysram);
 
 #ifdef STM32MP_NS_SYSRAM_BASE
 CASSERT((STM32MP_NS_SYSRAM_BASE >= STM32MP_SEC_SYSRAM_BASE) &&
-	((STM32MP_NS_SYSRAM_BASE + STM32MP_NS_SYSRAM_SIZE) <=
+	((STM32MP_NS_SYSRAM_BASE + STM32MP_NS_SYSRAM_SIZE) ==
 	 (STM32MP_SYSRAM_BASE + STM32MP_SYSRAM_SIZE)),
-	assert_non_secure_sysram_fits_into_sysram);
+	assert_non_secure_sysram_fits_at_end_of_sysram);
+
+CASSERT((STM32MP_NS_SYSRAM_BASE & GENMASK(11, 0)) == 0,
+	assert_non_secure_sysram_base_is_4kbyte_aligned);
 
 #define TZMA1_SECURE_RANGE \
 	(((STM32MP_NS_SYSRAM_BASE - STM32MP_SYSRAM_BASE) >> 12) - 1)
 #else
-#define TZMA1_SECURE_RANGE		ETZPC_TZMA_ALL_SECURE
+#define TZMA1_SECURE_RANGE		STM32MP_ETZPC_TZMA_ALL_SECURE
 #endif /* STM32MP_NS_SYSRAM_BASE */
-#define TZMA0_SECURE_RANGE		ETZPC_TZMA_ALL_SECURE
+#define TZMA0_SECURE_RANGE		STM32MP_ETZPC_TZMA_ALL_SECURE
 
 static void stm32mp1_etzpc_early_setup(void)
 {
-	/*
-	 * Confiure access rights on internal RAM. Most ETZPC configuration
-	 * is laoded later, once devices have probed and register to either
-	 * secure or non-secure world.
-	 */
-	etzpc_init();
-	etzpc_configure_tzma(0, TZMA0_SECURE_RANGE);
-	etzpc_configure_tzma(1, TZMA1_SECURE_RANGE);
-}
+	int n;
 
+ERROR("init etzpc\n");
+	etzpc_init();
+ERROR("init etzpc\n");
+	etzpc_configure_tzma(0, TZMA0_SECURE_RANGE);
+ERROR("init etzpc\n");
+	etzpc_configure_tzma(1, TZMA1_SECURE_RANGE);
+
+	/* Release security on all shared resources */
+	for (n = 0; n < STM32MP1_ETZPC_SEC_ID_LIMIT; n++) {
+ERROR("etzpc dectrop %d\n", n);
+		etzpc_configure_decprot(n, ETZPC_DECPROT_NS_RW);
+	}
+ERROR("init etzpc done\n");
+}
 
 /*******************************************************************************
  * Perform any BL32 specific platform actions.
@@ -165,8 +167,6 @@ void sp_min_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 		panic();
 	}
 
-	stm32mp1_etzpc_early_setup();
-
 	result = dt_get_stdout_uart_info(&dt_uart_info);
 
 	if ((result > 0) && (dt_uart_info.status != 0U)) {
@@ -185,6 +185,8 @@ void sp_min_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 #endif
 		console_set_scope(&console.console, console_flags);
 	}
+
+	stm32mp1_etzpc_early_setup();
 }
 
 /*******************************************************************************
@@ -199,11 +201,6 @@ void sp_min_platform_setup(void)
 
 	stm32mp1_gic_init();
 
-	/* Unlock ETZPC securable peripherals */
-#define STM32MP1_ETZPC_BASE	0x5C007000U
-#define ETZPC_DECPROT0		0x010U
-	mmio_write_32(STM32MP1_ETZPC_BASE + ETZPC_DECPROT0, 0xFFFFFFFF);
-
 	/* Set GPIO bank Z as non secure */
 	for (uint32_t pin = 0U; pin < STM32MP_GPIOZ_PIN_MAX_COUNT; pin++) {
 		set_gpio_secure_cfg(GPIO_BANK_Z, pin, false);
@@ -212,6 +209,8 @@ void sp_min_platform_setup(void)
 	if (stm32_iwdg_init() < 0) {
 		panic();
 	}
+
+	stm32mp1_init_scmi_server();
 }
 
 void sp_min_plat_arch_setup(void)
