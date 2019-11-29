@@ -193,6 +193,13 @@
  * Size of the per-cpu data in bytes that should be reserved in the generic
  * per-cpu data structure for the FVP port.
  ******************************************************************************/
-#define PLAT_PCPU_DATA_SIZE	2
+#define PLAT_PCPU_DATA_SIZE		2
+
+/*******************************************************************************
+ * Number of parallel entry slots in SMT SCMI server entry context. For this
+ * platform, SCMI server is reached through SMC only, hence the number of
+ * entry slots.
+ ******************************************************************************/
+#define PLAT_SMT_ENTRY_COUNT		PLATFORM_CORE_COUNT
 
 #endif /* PLATFORM_DEF_H */

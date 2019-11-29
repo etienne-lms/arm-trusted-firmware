@@ -172,7 +172,7 @@ ${STM32_TF_BINARY}:	${STM32_TF_ELF}
 
 ${STM32_TF_STM32}:	stm32image ${STM32_TF_BINARY}
 			@echo
-			@echo "Generated $@"
+			@echo "Generate $@"
 			$(eval LOADADDR =  $(shell cat ${STM32_TF_MAPFILE} | grep RAM | awk '{print $$2}'))
 			$(eval ENTRY =  $(shell cat ${STM32_TF_MAPFILE} | grep "__BL2_IMAGE_START" | awk '{print $$1}'))
 			${STM32IMAGE} -s ${STM32_TF_BINARY} -d $@ -l $(LOADADDR) -e ${ENTRY} -v ${STM32_TF_VERSION}

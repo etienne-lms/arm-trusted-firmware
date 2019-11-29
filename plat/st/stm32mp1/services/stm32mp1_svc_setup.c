@@ -12,6 +12,7 @@
 #include <lib/psci/psci.h>
 #include <tools_share/uuid.h>
 
+#include <drivers/scmi-server/channel.h>
 #include <stm32mp1_smc.h>
 
 #include "bsec_svc.h"
@@ -63,6 +64,12 @@ static uintptr_t stm32mp1_svc_smc_handler(uint32_t smc_fid, u_register_t x1,
 	case STM32_SMC_BSEC:
 		ret1 = bsec_main(x1, x2, x3, &ret2);
 		ret2_enabled = true;
+		break;
+
+	case STM32_SIP_SMC_SCMI_AGENT0:
+		scmi_smt_fastcall_smc_entry(0);
+		/* No meaningful return value but ensure at least not UNK */
+		ret1 = 0U;
 		break;
 
 	default:
