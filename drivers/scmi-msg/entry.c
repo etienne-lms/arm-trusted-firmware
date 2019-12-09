@@ -55,6 +55,11 @@ void scmi_process_message(struct scmi_msg *msg)
 				      scmi_base_payload_size_table,
 				      scmi_base_handler_count);
 		return;
+	case SCMI_PROTOCOL_ID_CLOCK:
+		scmi_call_msg_handler(msg, scmi_clock_handler_table,
+				      scmi_clock_payload_size_table,
+				      scmi_clock_handler_count);
+		return;
 	default:
 		scmi_status_response(msg, SCMI_NOT_SUPPORTED);
 		return;

@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "base.h"
+#include "clock.h"
 
 #define SCMI_VERSION			0x20000
 #define SCMI_IMPL_VERSION		0
@@ -80,6 +81,10 @@ typedef void (*scmi_msg_handler_t)(struct scmi_msg *msg);
 extern const scmi_msg_handler_t scmi_base_handler_table[];
 extern const size_t scmi_base_payload_size_table[];
 extern const size_t scmi_base_handler_count;
+
+extern const scmi_msg_handler_t scmi_clock_handler_table[];
+extern const size_t scmi_clock_payload_size_table[];
+extern const size_t scmi_clock_handler_count;
 
 /*
  * Call handler related to message ID from a handler table.
