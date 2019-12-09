@@ -20,6 +20,11 @@
 	.weak plat_scmi_clock_get_state
 	.weak plat_scmi_clock_set_state
 
+	.weak plat_scmi_rd_count
+	.weak plat_scmi_rd_get_name
+	.weak plat_scmi_rd_autonomous
+	.weak plat_scmi_rd_set_state
+
 	.globl plat_scmi_clock_count
 	.globl plat_scmi_clock_get_name
 	.globl plat_scmi_clock_rates_array
@@ -29,6 +34,11 @@
 	.globl plat_scmi_clock_get_state
 	.globl plat_scmi_clock_set_state
 
+	.globl plat_scmi_rd_count
+	.globl plat_scmi_rd_get_name
+	.globl plat_scmi_rd_autonomous
+	.globl plat_scmi_rd_set_state
+
 /* Unique weak function for unsupported handlers returning SCMI_NOT_SUPPORTED */
 func scmi_weak_not_supported
 
@@ -37,6 +47,8 @@ plat_scmi_clock_get_state:
 plat_scmi_clock_set_state:
 plat_scmi_clock_rates_array:
 plat_scmi_clock_rates_by_step:
+plat_scmi_rd_autonomous:
+plat_scmi_rd_set_state:
 
 	ldr	r0, =SCMI_NOT_SUPPORTED
 	bx	lr
@@ -48,6 +60,8 @@ func scmi_msg_weak_null
 plat_scmi_clock_count:
 plat_scmi_clock_get_name:
 plat_scmi_clock_get_current_rate:
+plat_scmi_rd_count:
+plat_scmi_rd_get_name:
 
 	ldr	r0, =0
 	bx	lr

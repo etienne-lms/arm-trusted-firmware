@@ -60,6 +60,11 @@ void scmi_process_message(struct scmi_msg *msg)
 				      scmi_clock_payload_size_table,
 				      scmi_clock_handler_count);
 		return;
+	case SCMI_PROTOCOL_ID_RESET_DOMAIN:
+		scmi_call_msg_handler(msg, scmi_rd_handler_table,
+				      scmi_rd_payload_size_table,
+				      scmi_rd_handler_count);
+		return;
 	default:
 		scmi_status_response(msg, SCMI_NOT_SUPPORTED);
 		return;
