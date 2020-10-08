@@ -456,6 +456,9 @@
 /* Values of RCC_UART24CKSELR register */
 #define RCC_UART24CKSELR_HSI		0x00000002
 
+/* Global Control Register */
+#define RCC_MP_GCR_BOOT_MCU		BIT(0)
+
 /* Values of RCC_MP_APB1ENSETR register */
 #define RCC_MP_APB1ENSETR_UART4EN	BIT(16)
 

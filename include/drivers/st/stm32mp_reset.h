@@ -47,4 +47,10 @@ static inline void stm32mp_reset_release(uint32_t reset_id)
 	(void)stm32mp_reset_deassert(reset_id, 0U);
 }
 
+/*
+ * Assert or deassert MCU Hold Boot signal used to hold MCU reboot on MCU reset
+ *
+ * @assert_not_deassert: True (assert) or false (deassert)
+  */
+void stm32mp_reset_assert_mcu_hold_boot(bool assert_not_deassert);
 #endif /* STM32MP_RESET_H */
