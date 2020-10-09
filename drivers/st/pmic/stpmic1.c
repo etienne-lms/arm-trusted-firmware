@@ -424,6 +424,10 @@ static const uint16_t vref_ddr_voltage_table[] = {
 	3300,
 };
 
+static const uint16_t fixed_5v_voltage_table[] = {
+	5000,
+};
+
 /* Table of Regulators in PMIC SoC */
 static const struct regul_struct regulators_table[] = {
 	{
@@ -543,6 +547,27 @@ static const struct regul_struct regulators_table[] = {
 		.enable_pos	= LDO_BUCK_ENABLE_POS,
 		.mask_reset_reg = MASK_RESET_LDO_REG,
 		.mask_reset_pos = VREF_DDR_MASK_RESET_SHIFT,
+	},
+	{
+		.dt_node_name = "boost",
+		.voltage_table	= fixed_5v_voltage_table,
+		.voltage_table_size = ARRAY_SIZE(fixed_5v_voltage_table),
+		.control_reg	= USB_CONTROL_REG,
+		.enable_pos	= BOOST_ENABLED_POS,
+	},
+	{
+		.dt_node_name	= "pwr_sw1",
+		.voltage_table	= fixed_5v_voltage_table,
+		.voltage_table_size = ARRAY_SIZE(fixed_5v_voltage_table),
+		.control_reg	= USB_CONTROL_REG,
+		.enable_pos	= USBSW_OTG_SWITCH_ENABLED_POS,
+	},
+	{
+		.dt_node_name	= "pwr_sw2",
+		.voltage_table	= fixed_5v_voltage_table,
+		.voltage_table_size = ARRAY_SIZE(fixed_5v_voltage_table),
+		.control_reg	= USB_CONTROL_REG,
+		.enable_pos	= SWIN_SWOUT_ENABLED_POS,
 	},
 };
 
