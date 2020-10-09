@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Copyright (c) 2015-2019, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2020, Arm Limited and Contributors. All rights reserved.
  */
 #ifndef SCMI_MSG_SCMI_H
 #define SCMI_MSG_SCMI_H
@@ -12,6 +12,7 @@
 #define SCMI_PROTOCOL_ID_CLOCK			0x14U
 #define SCMI_PROTOCOL_ID_SENSOR			0x15U
 #define SCMI_PROTOCOL_ID_RESET_DOMAIN		0x16U
+#define SCMI_PROTOCOL_ID_VOLTAGE_DOMAIN		0x17U
 
 /* SCMI error codes reported to agent through server-to-agent messages */
 #define SCMI_SUCCESS			0
