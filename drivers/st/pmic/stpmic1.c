@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <assert.h>
+#include <errno.h>
 #include <string.h>
 
 #include <common/debug.h>
 #include <drivers/st/stpmic1.h>
 
 #define I2C_TIMEOUT_MS		25
+
+#define VOLTAGE_INDEX_INVALID		((unsigned int)~0)
 
 struct regul_struct {
 	const char *dt_node_name;
@@ -534,24 +538,46 @@ static const struct regul_struct regulators_table[] = {
 
 static const struct regul_struct *get_regulator_data(const char *name)
 {
-	uint8_t i;
+	size_t i;
 
-	for (i = 0 ; i < MAX_REGUL ; i++) {
+	for (i = 0U ; i < MAX_REGUL ; i++) {
 		if (strncmp(name, regulators_table[i].dt_node_name,
 			    strlen(regulators_table[i].dt_node_name)) == 0) {
 			return &regulators_table[i];
 		}
 	}
 
-	/* Regulator not found */
-	panic();
 	return NULL;
 }
 
-static uint8_t voltage_to_index(const char *name, uint16_t millivolts)
+bool stpmic1_regulator_is_valid(const char *name)
+{
+	return get_regulator_data(name);
+}
+
+int stpmic1_regulator_levels_mv(const char *name, const uint16_t **levels,
+				size_t *levels_count)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
-	uint8_t i;
+
+	if (!regul)
+		return -EINVAL;
+
+	if (levels_count)
+		*levels_count = regul->voltage_table_size;
+
+	if (levels)
+		*levels = regul->voltage_table;
+
+	return 0;
+}
+
+static unsigned int voltage_to_index(const char *name, uint16_t millivolts)
+{
+	const struct regul_struct *regul = get_regulator_data(name);
+	unsigned int i;
+
+	assert(regul);
 
 	for (i = 0 ; i < regul->voltage_table_size ; i++) {
 		if (regul->voltage_table[i] == millivolts) {
@@ -559,10 +585,7 @@ static uint8_t voltage_to_index(const char *name, uint16_t millivolts)
 		}
 	}
 
-	/* Voltage not found */
-	panic();
-
-	return 0;
+	return VOLTAGE_INDEX_INVALID;
 }
 
 int stpmic1_powerctrl_on(void)
@@ -581,12 +604,16 @@ int stpmic1_regulator_enable(const char *name)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
 
+	assert(regul);
+
 	return stpmic1_register_update(regul->control_reg, BIT(0), BIT(0));
 }
 
 int stpmic1_regulator_disable(const char *name)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
+
+	assert(regul);
 
 	return stpmic1_register_update(regul->control_reg, 0, BIT(0));
 }
@@ -595,6 +622,8 @@ uint8_t stpmic1_is_regulator_enabled(const char *name)
 {
 	uint8_t val;
 	const struct regul_struct *regul = get_regulator_data(name);
+
+	assert(regul);
 
 	if (stpmic1_register_read(regul->control_reg, &val) != 0) {
 		panic();
@@ -605,9 +634,14 @@ uint8_t stpmic1_is_regulator_enabled(const char *name)
 
 int stpmic1_regulator_voltage_set(const char *name, uint16_t millivolts)
 {
-	uint8_t voltage_index = voltage_to_index(name, millivolts);
+	unsigned int voltage_index = voltage_to_index(name, millivolts);
 	const struct regul_struct *regul = get_regulator_data(name);
 	uint8_t mask;
+
+	if (voltage_index == VOLTAGE_INDEX_INVALID)
+		return -1;
+
+	assert(regul);
 
 	/* Voltage can be set for buck<N> or ldo<N> (except ldo4) regulators */
 	if (strncmp(name, "buck", 4) == 0) {
@@ -628,6 +662,8 @@ int stpmic1_regulator_pull_down_set(const char *name)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
 
+	assert(regul);
+
 	if (regul->pull_down_reg != 0) {
 		return stpmic1_register_update(regul->pull_down_reg,
 					       BIT(regul->pull_down),
@@ -642,6 +678,8 @@ int stpmic1_regulator_mask_reset_set(const char *name)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
 
+	assert(regul);
+
 	return stpmic1_register_update(regul->mask_reset_reg,
 				       BIT(regul->mask_reset),
 				       LDO_BUCK_RESET_MASK <<
@@ -653,6 +691,8 @@ int stpmic1_regulator_voltage_get(const char *name)
 	const struct regul_struct *regul = get_regulator_data(name);
 	uint8_t value;
 	uint8_t mask;
+
+	assert(regul);
 
 	/* Voltage can be set for buck<N> or ldo<N> (except ldo4) regulators */
 	if (strncmp(name, "buck", 4) == 0) {

@@ -7,6 +7,8 @@
 #ifndef STPMIC1_H
 #define STPMIC1_H
 
+#include <stdbool.h>
+
 #include <drivers/st/stm32_i2c.h>
 #include <lib/utils_def.h>
 
@@ -154,13 +156,16 @@ int stpmic1_switch_off(void);
 int stpmic1_register_read(uint8_t register_id, uint8_t *value);
 int stpmic1_register_write(uint8_t register_id, uint8_t value);
 int stpmic1_register_update(uint8_t register_id, uint8_t value, uint8_t mask);
+bool stpmic1_regulator_is_valid(const char *name);
 int stpmic1_regulator_enable(const char *name);
 int stpmic1_regulator_disable(const char *name);
-uint8_t stpmic1_is_regulator_enabled(const char *name);
+bool stpmic1_is_regulator_enabled(const char *name);
 int stpmic1_regulator_voltage_set(const char *name, uint16_t millivolts);
 int stpmic1_regulator_voltage_get(const char *name);
 int stpmic1_regulator_pull_down_set(const char *name);
 int stpmic1_regulator_mask_reset_set(const char *name);
+int stpmic1_regulator_levels_mv(const char *name, const uint16_t **levels,
+				size_t *levels_count);
 void stpmic1_bind_i2c(struct i2c_handle_s *i2c_handle, uint16_t i2c_addr);
 
 int stpmic1_get_version(unsigned long *version);
