@@ -21,6 +21,7 @@
 #include <drivers/st/stm32_console.h>
 #include <drivers/st/stm32_gpio.h>
 #include <drivers/st/stm32_iwdg.h>
+#include <drivers/st/stm32mp_pmic.h>
 #include <drivers/st/stm32mp1_clk.h>
 #include <dt-bindings/clock/stm32mp1-clks.h>
 #include <lib/el3_runtime/context_mgmt.h>
@@ -195,6 +196,8 @@ void sp_min_platform_setup(void)
 	if (stm32_iwdg_init() < 0) {
 		panic();
 	}
+
+	initialize_pmic();
 
 	stm32mp_lock_periph_registering();
 

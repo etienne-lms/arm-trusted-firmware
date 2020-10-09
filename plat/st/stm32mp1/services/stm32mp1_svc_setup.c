@@ -72,6 +72,9 @@ static uintptr_t stm32mp1_svc_smc_handler(uint32_t smc_fid, u_register_t x1,
 	case STM32_SIP_SMC_SCMI_AGENT1:
 		scmi_smt_fastcall_smc_entry(1);
 		break;
+	case STM32_SIP_SMC_SCMI_AGENT2:
+		scmi_smt_fastcall_smc_entry(2);
+		break;
 
 	default:
 		WARN("Unimplemented STM32MP1 Service Call: 0x%x\n", smc_fid);
