@@ -7,6 +7,8 @@
 #ifndef STM32MP1_PWR_H
 #define STM32MP1_PWR_H
 
+#include <stdbool.h>
+
 #include <lib/utils_def.h>
 
 #define PWR_CR1			U(0x00)
@@ -28,5 +30,16 @@
 #define PWR_MPUCR_PDDS		BIT(0)
 #define PWR_MPUCR_CSTDBYDIS	BIT(3)
 #define PWR_MPUCR_CSSF		BIT(9)
+
+enum pwr_regulator {
+	PWR_REG11 = 0,
+	PWR_REG18,
+	PWR_USB33,
+	PWR_REGU_COUNT
+};
+
+unsigned long stm32mp1_pwr_regulator_mv(enum pwr_regulator id);
+void stm32mp1_pwr_regulator_set_state(enum pwr_regulator id, bool enable);
+bool stm32mp1_pwr_regulator_is_enabled(enum pwr_regulator id);
 
 #endif /* STM32MP1_PWR_H */
