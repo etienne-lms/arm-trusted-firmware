@@ -21,10 +21,11 @@ struct regul_struct {
 	uint8_t voltage_table_size;
 	uint8_t control_reg;
 	uint8_t low_power_reg;
+	uint8_t enable_pos;
 	uint8_t pull_down_reg;
-	uint8_t pull_down;
+	uint8_t pull_down_pos;
 	uint8_t mask_reset_reg;
-	uint8_t mask_reset;
+	uint8_t mask_reset_pos;
 };
 
 static struct i2c_handle_s *pmic_i2c_handle;
@@ -431,10 +432,11 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(buck1_voltage_table),
 		.control_reg	= BUCK1_CONTROL_REG,
 		.low_power_reg	= BUCK1_PWRCTRL_REG,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
 		.pull_down_reg	= BUCK_PULL_DOWN_REG,
-		.pull_down	= BUCK1_PULL_DOWN_SHIFT,
-		.mask_reset_reg	= MASK_RESET_BUCK_REG,
-		.mask_reset	= BUCK1_MASK_RESET,
+		.pull_down_pos	= BUCK1_PULL_DOWN_SHIFT,
+		.mask_reset_reg = MASK_RESET_BUCK_REG,
+		.mask_reset_pos = BUCK1_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "buck2",
@@ -442,10 +444,11 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(buck2_voltage_table),
 		.control_reg	= BUCK2_CONTROL_REG,
 		.low_power_reg	= BUCK2_PWRCTRL_REG,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
 		.pull_down_reg	= BUCK_PULL_DOWN_REG,
-		.pull_down	= BUCK2_PULL_DOWN_SHIFT,
-		.mask_reset_reg	= MASK_RESET_BUCK_REG,
-		.mask_reset	= BUCK2_MASK_RESET,
+		.pull_down_pos	= BUCK2_PULL_DOWN_SHIFT,
+		.mask_reset_reg = MASK_RESET_BUCK_REG,
+		.mask_reset_pos = BUCK2_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "buck3",
@@ -453,10 +456,11 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(buck3_voltage_table),
 		.control_reg	= BUCK3_CONTROL_REG,
 		.low_power_reg	= BUCK3_PWRCTRL_REG,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
 		.pull_down_reg	= BUCK_PULL_DOWN_REG,
-		.pull_down	= BUCK3_PULL_DOWN_SHIFT,
-		.mask_reset_reg	= MASK_RESET_BUCK_REG,
-		.mask_reset	= BUCK3_MASK_RESET,
+		.pull_down_pos	= BUCK3_PULL_DOWN_SHIFT,
+		.mask_reset_reg = MASK_RESET_BUCK_REG,
+		.mask_reset_pos = BUCK3_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "buck4",
@@ -464,10 +468,11 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(buck4_voltage_table),
 		.control_reg	= BUCK4_CONTROL_REG,
 		.low_power_reg	= BUCK4_PWRCTRL_REG,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
 		.pull_down_reg	= BUCK_PULL_DOWN_REG,
-		.pull_down	= BUCK4_PULL_DOWN_SHIFT,
-		.mask_reset_reg	= MASK_RESET_BUCK_REG,
-		.mask_reset	= BUCK4_MASK_RESET,
+		.pull_down_pos	= BUCK4_PULL_DOWN_SHIFT,
+		.mask_reset_reg = MASK_RESET_BUCK_REG,
+		.mask_reset_pos = BUCK4_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo1",
@@ -475,8 +480,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo1_voltage_table),
 		.control_reg	= LDO1_CONTROL_REG,
 		.low_power_reg	= LDO1_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO1_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO1_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo2",
@@ -484,8 +490,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo2_voltage_table),
 		.control_reg	= LDO2_CONTROL_REG,
 		.low_power_reg	= LDO2_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO2_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO2_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo3",
@@ -493,8 +500,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo3_voltage_table),
 		.control_reg	= LDO3_CONTROL_REG,
 		.low_power_reg	= LDO3_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO3_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO3_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo4",
@@ -502,8 +510,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo4_voltage_table),
 		.control_reg	= LDO4_CONTROL_REG,
 		.low_power_reg	= LDO4_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO4_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO4_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo5",
@@ -511,8 +520,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo5_voltage_table),
 		.control_reg	= LDO5_CONTROL_REG,
 		.low_power_reg	= LDO5_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO5_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO5_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "ldo6",
@@ -520,8 +530,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(ldo6_voltage_table),
 		.control_reg	= LDO6_CONTROL_REG,
 		.low_power_reg	= LDO6_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= LDO6_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = LDO6_MASK_RESET_SHIFT,
 	},
 	{
 		.dt_node_name	= "vref_ddr",
@@ -529,8 +540,9 @@ static const struct regul_struct regulators_table[] = {
 		.voltage_table_size = ARRAY_SIZE(vref_ddr_voltage_table),
 		.control_reg	= VREF_DDR_CONTROL_REG,
 		.low_power_reg	= VREF_DDR_PWRCTRL_REG,
-		.mask_reset_reg	= MASK_RESET_LDO_REG,
-		.mask_reset	= VREF_DDR_MASK_RESET,
+		.enable_pos	= LDO_BUCK_ENABLE_POS,
+		.mask_reset_reg = MASK_RESET_LDO_REG,
+		.mask_reset_pos = VREF_DDR_MASK_RESET_SHIFT,
 	},
 };
 
@@ -606,7 +618,9 @@ int stpmic1_regulator_enable(const char *name)
 
 	assert(regul);
 
-	return stpmic1_register_update(regul->control_reg, BIT(0), BIT(0));
+	return stpmic1_register_update(regul->control_reg,
+				       BIT(regul->enable_pos),
+				       BIT(regul->enable_pos));
 }
 
 int stpmic1_regulator_disable(const char *name)
@@ -615,7 +629,8 @@ int stpmic1_regulator_disable(const char *name)
 
 	assert(regul);
 
-	return stpmic1_register_update(regul->control_reg, 0, BIT(0));
+	return stpmic1_register_update(regul->control_reg, 0,
+				       BIT(regul->enable_pos));
 }
 
 bool stpmic1_is_regulator_enabled(const char *name)
@@ -629,7 +644,7 @@ bool stpmic1_is_regulator_enabled(const char *name)
 		panic();
 	}
 
-	return (val & 0x1U) != 0U;
+	return (val & BIT(regul->enable_pos)) != 0U;
 }
 
 int stpmic1_regulator_voltage_set(const char *name, uint16_t millivolts)
@@ -666,9 +681,9 @@ int stpmic1_regulator_pull_down_set(const char *name)
 
 	if (regul->pull_down_reg != 0) {
 		return stpmic1_register_update(regul->pull_down_reg,
-					       BIT(regul->pull_down),
+					       BIT(regul->pull_down_pos),
 					       LDO_BUCK_PULL_DOWN_MASK <<
-					       regul->pull_down);
+					       regul->pull_down_pos);
 	}
 
 	return 0;
@@ -681,9 +696,9 @@ int stpmic1_regulator_mask_reset_set(const char *name)
 	assert(regul);
 
 	return stpmic1_register_update(regul->mask_reset_reg,
-				       BIT(regul->mask_reset),
+				       BIT(regul->mask_reset_pos),
 				       LDO_BUCK_RESET_MASK <<
-				       regul->mask_reset);
+				       regul->mask_reset_pos);
 }
 
 int stpmic1_regulator_voltage_get(const char *name)
