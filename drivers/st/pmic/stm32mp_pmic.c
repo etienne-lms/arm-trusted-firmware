@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <assert.h>
 #include <errno.h>
 
 #include <libfdt.h>
@@ -28,6 +29,8 @@
 #define STPMIC1_BUCK3_1V8		(39U << STPMIC1_BUCK_OUTPUT_SHIFT)
 
 #define STPMIC1_DEFAULT_START_UP_DELAY_MS	1
+
+#define STPMIC1_REGU_COUNT		14
 
 static struct i2c_handle_s i2c_handle;
 static uint32_t pmic_i2c_addr;
@@ -106,7 +109,44 @@ static int dt_pmic_i2c_config(struct dt_node_info *i2c_info,
 	return stm32_i2c_get_setup_from_fdt(fdt, i2c_node, init);
 }
 
-int dt_pmic_configure_boot_on_regulators(void)
+#if defined(IMAGE_BL32)
+/* Preallocate not that much regu references */
+static const char *nsec_access_regu_name[STPMIC1_REGU_COUNT];
+
+bool stm32mp_nsec_can_access_pmic_regu(const char *name)
+{
+	size_t n = 0U;
+
+	for (n = 0U; n < ARRAY_SIZE(nsec_access_regu_name); n++)
+		if (nsec_access_regu_name[n] &&
+		    !strcmp(nsec_access_regu_name[n], name))
+			return true;
+
+	return false;
+}
+
+static void register_nsec_regu(const char *name_ref)
+{
+	size_t n = 0U;
+
+	assert(!stm32mp_nsec_can_access_pmic_regu(name_ref));
+
+	for (n = 0U; n < ARRAY_SIZE(nsec_access_regu_name); n++) {
+		if (nsec_access_regu_name[n] == NULL) {
+			nsec_access_regu_name[n] = name_ref;
+
+			if (!nsec_access_regu_name[n]) {
+				panic();
+			}
+			break;
+		}
+	}
+
+	assert(stm32mp_nsec_can_access_pmic_regu(name_ref));
+}
+#endif
+
+static int dt_pmic_regulators_config(void)
 {
 	int pmic_node, regulators_node, regulator_node;
 	void *fdt;
@@ -123,22 +163,37 @@ int dt_pmic_configure_boot_on_regulators(void)
 	regulators_node = fdt_subnode_offset(fdt, pmic_node, "regulators");
 
 	fdt_for_each_subnode(regulator_node, fdt, regulators_node) {
-		const fdt32_t *cuint;
 		const char *node_name = fdt_get_name(fdt, regulator_node, NULL);
+		int node_status = fdt_get_status(regulator_node);
+		const fdt32_t *cuint;
 		uint16_t voltage;
 		int status;
+
+		if (node_status == DT_DISABLED) {
+			continue;
+		}
+
+		assert(stpmic1_regulator_is_valid(node_name));
+
+#if defined(IMAGE_BL32)
+		if (node_status & DT_NON_SECURE) {
+			register_nsec_regu(node_name);
+		}
+#endif
 
 #if defined(IMAGE_BL2)
 		if ((fdt_getprop(fdt, regulator_node, "regulator-boot-on",
 				 NULL) == NULL) &&
 		    (fdt_getprop(fdt, regulator_node, "regulator-always-on",
 				 NULL) == NULL)) {
+			continue;
+		}
 #else
 		if (fdt_getprop(fdt, regulator_node, "regulator-boot-on",
 				NULL) == NULL) {
-#endif
 			continue;
 		}
+#endif
 
 		if (fdt_getprop(fdt, regulator_node, "regulator-pull-down",
 				NULL) != NULL) {
@@ -264,11 +319,9 @@ void initialize_pmic(void)
 	INFO("PMIC version = 0x%02lx\n", pmic_version);
 	stpmic1_dump_regulators();
 
-#if defined(IMAGE_BL2)
-	if (dt_pmic_configure_boot_on_regulators() != 0) {
+	if (dt_pmic_regulators_config() != 0) {
 		panic();
 	};
-#endif
 }
 
 int pmic_ddr_power_init(enum ddr_type ddr_type)

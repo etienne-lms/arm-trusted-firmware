@@ -48,4 +48,6 @@ void initialize_pmic(void);
  */
 int pmic_ddr_power_init(enum ddr_type ddr_type);
 
+/* Return true if non-secure world can manipulate regulator @pmic_regu_name */
+bool stm32mp_nsec_can_access_pmic_regu(const char *pmic_regu_name);
 #endif /* STM32MP_PMIC_H */
