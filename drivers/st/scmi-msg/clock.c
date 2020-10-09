@@ -36,6 +36,7 @@ const char *plat_scmi_clock_get_name(unsigned int agent_id __unused,
 
 int32_t plat_scmi_clock_rates_array(unsigned int agent_id __unused,
 				    unsigned int scmi_id __unused,
+				    size_t start_index __unused,
 				    unsigned long *rates __unused,
 				    size_t *nb_elts __unused)
 {
@@ -297,7 +298,7 @@ static void scmi_clock_describe_rates(struct scmi_msg *msg)
 	}
 
 	/* Platform may support array rate description */
-	status = plat_scmi_clock_rates_array(msg->agent_id, clock_id, NULL,
+	status = plat_scmi_clock_rates_array(msg->agent_id, clock_id, 0, NULL,
 					     &nb_rates);
 	if (status == SCMI_SUCCESS) {
 		/* Currently 12 cells mex, so it's affordable for the stack */
@@ -307,6 +308,7 @@ static void scmi_clock_describe_rates(struct scmi_msg *msg)
 		size_t rem_nb = nb_rates - in_args->rate_index - ret_nb;
 
 		status =  plat_scmi_clock_rates_array(msg->agent_id, clock_id,
+						      in_args->rate_index,
 						      plat_rates, &ret_nb);
 		if (status == SCMI_SUCCESS) {
 			write_rate_desc_array_in_buffer(msg->out + sizeof(p2a),
