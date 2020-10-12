@@ -618,7 +618,7 @@ int stpmic1_regulator_disable(const char *name)
 	return stpmic1_register_update(regul->control_reg, 0, BIT(0));
 }
 
-uint8_t stpmic1_is_regulator_enabled(const char *name)
+bool stpmic1_is_regulator_enabled(const char *name)
 {
 	uint8_t val;
 	const struct regul_struct *regul = get_regulator_data(name);
@@ -629,7 +629,7 @@ uint8_t stpmic1_is_regulator_enabled(const char *name)
 		panic();
 	}
 
-	return (val & 0x1U);
+	return (val & 0x1U) != 0U;
 }
 
 int stpmic1_regulator_voltage_set(const char *name, uint16_t millivolts)
